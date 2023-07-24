@@ -14,10 +14,12 @@ FORMAT_STRING = 'utf-8'
 DISCONNECT_MESSAGE = "DISCONNECT"
 
 class ComputerIPC:
-    def __init__(self, port='COM2', baudrate=9600, timeout=None):
+    def __init__(self, port='COM2', baudrate=9600, timeout=None, port_socket=5050):
         self.ser = None
         self.server = None
         self.port = port
+        self.port_socket = port_socket
+        self.address_socket = (SERVER, self.port_socket)
         self.baudrate = baudrate
         self.timeout = timeout
         self.is_running_server = False
@@ -28,7 +30,7 @@ class ComputerIPC:
     def __init_server(self):
         if self.server is None:
             self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.server.bind(ADDRESS)
+            self.server.bind(self.address_socket)
 
     def __init_serial(self):
         if self.ser is None:
@@ -69,17 +71,17 @@ class ComputerIPC:
         self.is_run = True
 
     def insert_environment_status_table(self, rack_id: int, temperature: float, humidity: float, weight: float, smoke: float):
-        database_cursor.execute("INSERT INTO environmentstatus (rack_id, temperature, humidity, weight, smoke) VALUES (%s, %s, %s, %s, %s)", (rack_id, temperature, humidity, weight, smoke))
+        database_cursor.execute("INSERT INTO api_environmentstatus (rack_id, temperature, humidity, weight, smoke) VALUES (%s, %s, %s, %s, %s)", (rack_id, temperature, humidity, weight, smoke))
         db.commit()
         print('[DATABASE] Insert into environmentstatus successfully')
 
     def insert_operation_status_table(self, rack_id: int, movement_speed: float, displacement: float, is_hard_locked, is_endpoint):
-        database_cursor.execute("INSERT INTO operationstatus (rack_id, movement_speed, displacement, is_hard_locked, is_end_point) VALUES (%s, %s, %s, %s, %s)", (rack_id, movement_speed, displacement, is_hard_locked, is_endpoint))
+        database_cursor.execute("INSERT INTO api_operationstatus (rack_id, movement_speed, displacement, is_hard_locked, is_endpoint) VALUES (%s, %s, %s, %s, %s)", (rack_id, movement_speed, displacement, is_hard_locked, is_endpoint))
         db.commit()
         print('[DATABASE] Insert into operationstatus successfully')
 
     def insert_breakdown_status_table(self, rack_id: int, is_obstructed, is_skewed, is_overload_motor):
-        database_cursor.execute("INSERT INTO breakdownstatus (rack_id, is_obstructed, is_skewed, is_overload_motor) VALUES (%s, %s, %s, %s)", (rack_id, is_obstructed, is_skewed, is_overload_motor))
+        database_cursor.execute("INSERT INTO api_breakdownstatus (rack_id, is_obstructed, is_skewed, is_overload_motor) VALUES (%s, %s, %s, %s)", (rack_id, is_obstructed, is_skewed, is_overload_motor))
         db.commit()
         print('[DATABASE] Insert into breakdownstatus successfully')
 
@@ -206,8 +208,10 @@ class ComputerIPC:
 
 if __name__ == '__main__':
     HihiController = ComputerIPC(timeout=1)
-    HihiController.run_computerIPC()
-#    HihiController2 = ComputerIPC(port='COM4', timeout=1)
-#    HihiController2.run_computerIPC()
-#    HihiController3 = ComputerIPC(port='COM6', timeout=1)
-#    HihiController3.run_computerIPC()
+    hihi_thread = threading.Thread(target=HihiController.run_computerIPC, args=(), daemon=True)
+    HihiController2 = ComputerIPC(port='COM4', timeout=1)
+    hihi2_thread = threading.Thread(target=HihiController2.run_computerIPC, args=(), daemon=True)
+    HihiController3 = ComputerIPC(port='COM6', timeout=1)
+    hihi3_thread = threading.Thread(target=HihiController3.run_computerIPC, args=(), daemon=True)
+    HihiController4 = ComputerIPC(port='COM8', timeout=1)
+    hihi4_thread = threading.Thread(target=HihiController4.run_computerIPC, args=(), daemon=True)

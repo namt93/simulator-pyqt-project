@@ -5,7 +5,7 @@ db = mysql.connector.connect(
         host="localhost",
         user="admin",
         passwd="password",
-        database="simulator"
+        database="computeripc"
         )
 
 database_cursor = db.cursor()
